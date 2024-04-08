@@ -1,0 +1,65 @@
+/* App.css */
+
+/* Background */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.bg-body-tertiary {
+  background-color: #f7f7f7; /* Light gray background */
+}
+
+/* Navbar */
+.navbar {
+  background-color: #2c3e50; /* Dark blue background */
+  color: #fff; /* White text */
+}
+
+.navbar-brand {
+  font-size: 1.5rem; /* Larger font size */
+}
+
+/* Search Bar */
+.container {
+  margin-top: 20px; /* Spacing from the top */
+}
+
+.form-control {
+  border-radius: 25px; /* Rounded input */
+  border-color: #3498db; /* Blue border */
+}
+
+.input-group-append .btn {
+  border-radius: 25px; /* Rounded button */
+  background-color: #3498db; /* Blue button background */
+  color: #fff; /* White text */
+}
+
+.input-group-append .btn:hover {
+  background-color: #2980b9; /* Darker hover color */
+}
+
+/* Tabs */
+.nav-tabs {
+  margin-bottom: 20px; /* Spacing below the tabs */
+}
+
+.nav-tabs .nav-link {
+  border-radius: 25px 25px 0 0; /* Rounded top corners */
+  background-color: rgb(114, 175, 233); /* Blue background */
+  color: #000; /* White text */
+  margin-right: 5px; /* Spacing between tabs */
+  /* border: var(--bs-nav-tabs-border-width) solid #ccc */
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link:hover {
+  background-color: #2980b9 !important; /* Darker active/hover background */
+  color: #fff !important;
+}
+
+.tab-content {
+  padding: 20px; /* Spacing inside tabs */
+  background-color: #fff; /* White background */
+}

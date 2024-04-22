@@ -335,13 +335,13 @@ function App() {
                       <Card.Body>
                         <Card.Link
                           style={{ fontSize: "22px", fontWeight: "600" }}
-                          href={result?.url?.[0]}
+                          href={result?.url}
                           target="_blank"
                         >
                           {result?.title}
                         </Card.Link>
                         <Card.Text style={{ fontSize: "14px" }}>
-                          {result?.url?.[0]}
+                          {result?.url}
                         </Card.Text>
                         <Card.Text>
                           {truncateTextToWords(

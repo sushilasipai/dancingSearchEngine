@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
@@ -76,9 +76,10 @@ function SearchBar({ handleSearch }) {
   );
 }
 function App() {
-  const limit = 10;
+  const limit = 50;
   const [googlesearchUrl, setGoogleSearchUrl] = useState("");
   const [bingsearchUrl, setBingSearchUrl] = useState("");
+  const [clusteringOption, setClusteringOption] = useState("");
   const [searchText, setSearchText] = useState("");
   const [pageRank, setPageRank] = useState(true);
   const [hits, setHits] = useState(false);
@@ -87,6 +88,42 @@ function App() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [paginated, setPaginated] = useState(0);
+  const [originalData, setOriginalData] = useState([]);
+
+  const handleClusteringChange = (e) => {
+    setClusteringOption(e.target.value);
+  };
+
+  useEffect(() => {
+    querySolr(searchText, currentPage);
+  }, [pageRank, hits]);
+
+  useEffect(() => {
+    queryCluster(originalData);
+  }, [clusteringOption]);
+
+  async function queryCluster(response) {
+    const url = "http://localhost:3000/cluster";
+
+    if (clusteringOption === "None" || clusteringOption === "") {
+      return await querySolr(searchText, currentPage);
+    }
+
+    const fetchOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ documents: response, method: clusteringOption }),
+    };
+    const { data } = await fetch(url, fetchOptions).then((response) =>
+      response.json()
+    );
+    if (data) {
+      console.log("My data", data);
+      setSearchResults(data);
+    }
+  }
 
   function truncateTextToWords(text, numWords) {
     // Split the text into words
@@ -198,7 +235,7 @@ function App() {
     );
 
     const totalPages = data.response.numFound;
-    console.log(totalPages);
+    setOriginalData(data);
     const pages = Math.floor(totalPages / limit);
     setPaginated(pages);
     setSearchResults(data.response.docs);
@@ -228,27 +265,64 @@ function App() {
           className="mb-3"
         >
           <Tab eventKey="dancing_search" title="Dancing Search">
-            <div key={`inline-radio`} className="mb-3">
-              <h3 style={{ color: "#80B928", fontSize: "22px" }}>
-                Relevance Model
-              </h3>
-              <Form.Check
-                inline
-                label="Page Rank"
-                name="pagerank"
-                type="radio"
-                checked={pageRank}
-                onChange={(e) => handleCheckboxChange("pagerank")}
-              />
-              <Form.Check
-                inline
-                label="HITS"
-                name="hits"
-                type="radio"
-                checked={hits}
-                onChange={(e) => handleCheckboxChange("hits")}
-              />
+            <div className="row">
+              <div key={`inline-radio`} className="mb-3 col-md-4">
+                <h3 style={{ color: "#80B928", fontSize: "22px" }}>
+                  Relevance Model
+                </h3>
+                <Form.Check
+                  inline
+                  label="Page Rank"
+                  name="pagerank"
+                  type="radio"
+                  checked={pageRank}
+                  onChange={(e) => handleCheckboxChange("pagerank")}
+                />
+                <Form.Check
+                  inline
+                  label="HITS"
+                  name="hits"
+                  type="radio"
+                  checked={hits}
+                  onChange={(e) => handleCheckboxChange("hits")}
+                />
+              </div>
+              <div className="mb-3 col-md-4">
+                <h3 style={{ color: "#80B928", fontSize: "22px" }}>
+                  Clustering Option
+                </h3>
+                <Form.Control
+                  as="select"
+                  value={clusteringOption}
+                  onChange={handleClusteringChange}
+                >
+                  <option value="None">None</option>
+                  <option value="Flat_Clustering">Flat Clustering</option>
+                  <option value="Agglomerative_Average_Link_Clustering">
+                    Agglomerative Average Link Clustering
+                  </option>
+                  <option value="Agglomerative_Complete_Link_Clustering">
+                    Agglomerative Complete Link Clustering
+                  </option>
+                  <option value="Agglomerative_Ward_Link_Clustering">
+                    Agglomerative Ward Link Clustering
+                  </option>
+                </Form.Control>
+              </div>
+
+              <div className="mb-3 col-md-4">
+                <h3 style={{ color: "#80B928", fontSize: "22px" }}>
+                  Query Expansion Option
+                </h3>
+                <Form.Control as="select">
+                  <option value="None">None</option>
+                  <option value="Association">Association</option>
+                  <option value="Metric">Metric</option>
+                  <option value="Scalar">Scalar</option>
+                </Form.Control>
+              </div>
             </div>
+
             {<div style={{ color: "red" }}>{error}</div>}
             {!error && (
               <div>
@@ -264,13 +338,18 @@ function App() {
                           href={result?.url?.[0]}
                           target="_blank"
                         >
-                          {result?.title?.[0]}
+                          {result?.title}
                         </Card.Link>
                         <Card.Text style={{ fontSize: "14px" }}>
                           {result?.url?.[0]}
                         </Card.Text>
                         <Card.Text>
-                          {truncateTextToWords(result?.content?.[0], 20)}
+                          {truncateTextToWords(
+                            Array.isArray(result?.content)
+                              ? result?.content[0]
+                              : result?.content,
+                            20
+                          )}
                         </Card.Text>
                       </Card.Body>
                     </Card>

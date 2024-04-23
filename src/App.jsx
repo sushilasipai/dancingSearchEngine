@@ -388,7 +388,12 @@ function App() {
                   {searchResults.length <= 0 && (
                     <div>Welcome to Custom Dance Search!!</div>
                   )}
-                  {expandedQuery}
+                  {expandedQuery && (
+                    <div style={{ fontSize: "24px" }}>
+                      <span style={{ color: "red" }}>Expanded Query:</span>{" "}
+                      {expandedQuery}
+                    </div>
+                  )}
                 </h1>
                 <div>
                   {searchResults.map((result, i) => (

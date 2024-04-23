@@ -76,7 +76,7 @@ function SearchBar({ handleSearch }) {
   );
 }
 function App() {
-  const limit = 50;
+  const limit = 30;
   const [googlesearchUrl, setGoogleSearchUrl] = useState("");
   const [bingsearchUrl, setBingSearchUrl] = useState("");
   const [clusteringOption, setClusteringOption] = useState("None");

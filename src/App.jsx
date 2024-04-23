@@ -146,7 +146,6 @@ function App() {
         setExpandedQuery(data);
         setCurrentPage(1);
         setPaginated(0);
-        setClusteringOption("None");
         await querySolr(data, 1, true); //true passed for expanded_query parameter
       }
     }
@@ -310,7 +309,7 @@ function App() {
   };
   return (
     <>
-      {/* <Background /> */}
+      <Background />
       <Navigation />
       <SearchBar handleSearch={handleSearch} />
       <Container>

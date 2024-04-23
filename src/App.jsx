@@ -79,7 +79,8 @@ function App() {
   const limit = 50;
   const [googlesearchUrl, setGoogleSearchUrl] = useState("");
   const [bingsearchUrl, setBingSearchUrl] = useState("");
-  const [clusteringOption, setClusteringOption] = useState("");
+  const [clusteringOption, setClusteringOption] = useState("None");
+  const [queryExpansionOption, setQueryExpansionOption] = useState("None");
   const [searchText, setSearchText] = useState("");
   const [pageRank, setPageRank] = useState(true);
   const [hits, setHits] = useState(false);
@@ -89,10 +90,19 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [paginated, setPaginated] = useState(0);
   const [originalData, setOriginalData] = useState([]);
-
+  const [clusteringResults, setClusteringResults] = useState([]);
+  const [expandedQuery, setExpandedQuery] = useState("");
   const handleClusteringChange = (e) => {
     setClusteringOption(e.target.value);
   };
+
+  const handleQueryExpansionChange = (e) => {
+    setQueryExpansionOption(e.target.value);
+  };
+
+  useEffect(() => {
+    callQueryExpansion();
+  }, [queryExpansionOption]);
 
   useEffect(() => {
     querySolr(searchText, currentPage);
@@ -102,10 +112,50 @@ function App() {
     queryCluster(originalData);
   }, [clusteringOption]);
 
+  async function callQueryExpansion() {
+    const url = "http://localhost:3000/query_expansion";
+    let solr_results = originalData?.response?.docs;
+    if (queryExpansionOption === "None") {
+      if (clusteringOption === "None") {
+        return await querySolr(searchText, currentPage);
+      }
+      return await queryCluster(originalData);
+    }
+
+    if (clusteringOption !== "None") {
+      solr_results = clusteringResults;
+    }
+
+    if (queryExpansionOption !== "None") {
+      const fetchOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          solr_results,
+          clustertype: queryExpansionOption,
+          query: searchText,
+        }),
+      };
+      const { data } = await fetch(url, fetchOptions).then((response) =>
+        response.json()
+      );
+      console.log(data);
+      if (data) {
+        setExpandedQuery(data);
+        setCurrentPage(1);
+        setPaginated(0);
+        setClusteringOption("None");
+        await querySolr(data, 1, true); //true passed for expanded_query parameter
+      }
+    }
+  }
+
   async function queryCluster(response) {
     const url = "http://localhost:3000/cluster";
 
-    if (clusteringOption === "None" || clusteringOption === "") {
+    if (clusteringOption === "None") {
       return await querySolr(searchText, currentPage);
     }
 
@@ -122,6 +172,7 @@ function App() {
     if (data) {
       console.log("My data", data);
       setSearchResults(data);
+      setClusteringResults(data);
     }
   }
 
@@ -212,7 +263,7 @@ function App() {
     return paginationItems;
   };
 
-  const querySolr = async (e, page) => {
+  const querySolr = async (e, page, expanded_query) => {
     const url = "http://localhost:3000";
     setCurrentPage(page);
 
@@ -221,6 +272,7 @@ function App() {
       query: e,
       algo: pageRank ? "pagerank" : "hits",
       page: page ?? currentPage,
+      expanded_query: expanded_query,
     };
 
     const fetchOptions = {
@@ -233,6 +285,9 @@ function App() {
     const { data } = await fetch(url, fetchOptions).then((response) =>
       response.json()
     );
+    if (!expanded_query) {
+      setExpandedQuery("");
+    }
 
     const totalPages = data.response.numFound;
     setOriginalData(data);
@@ -314,11 +369,15 @@ function App() {
                 <h3 style={{ color: "#80B928", fontSize: "22px" }}>
                   Query Expansion Option
                 </h3>
-                <Form.Control as="select">
+                <Form.Control
+                  as="select"
+                  value={queryExpansionOption}
+                  onChange={handleQueryExpansionChange}
+                >
                   <option value="None">None</option>
-                  <option value="Association">Association</option>
-                  <option value="Metric">Metric</option>
-                  <option value="Scalar">Scalar</option>
+                  <option value="association">Association</option>
+                  <option value="metric">Metric</option>
+                  <option value="scalar">Scalar</option>
                 </Form.Control>
               </div>
             </div>
@@ -327,7 +386,10 @@ function App() {
             {!error && (
               <div>
                 <h1 style={{ fontSize: "22px", marginTop: "50px" }}>
-                  Welcome to Custom Dance Search!!
+                  {searchResults.length <= 0 && (
+                    <div>Welcome to Custom Dance Search!!</div>
+                  )}
+                  {expandedQuery}
                 </h1>
                 <div>
                   {searchResults.map((result, i) => (

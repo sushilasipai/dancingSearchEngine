@@ -406,8 +406,16 @@ function App() {
                         >
                           {result?.title}
                         </Card.Link>
+
                         <Card.Text style={{ fontSize: "14px" }}>
                           {result?.url}
+                          {result?.cluster_id &&
+                            result?.cluster_id !== null && (
+                              <span style={{ color: "blue" }}>
+                                {" "}
+                                | Cluster ID: {result?.cluster_id}
+                              </span>
+                            )}
                         </Card.Text>
                         <Card.Text>
                           {truncateTextToWords(

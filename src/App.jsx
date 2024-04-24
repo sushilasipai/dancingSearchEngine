@@ -125,6 +125,7 @@ function App() {
     }
 
     if (clusteringOption !== "None") {
+      await queryCluster(originalData);
       solr_results = clusteringResults;
     }
 

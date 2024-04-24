@@ -198,6 +198,8 @@ function App() {
       return;
     }
 
+    setClusteringOption("None");
+    setQueryExpansionOption("None");
     await querySolr(e, currentPage);
     const encodedQuery = encodeURIComponent(e);
     const url = `https://www.google.com/search?igu=1&source=hp&ei=lheWXriYJ4PktQXN-LPgDA&q=${encodedQuery}`;
@@ -388,7 +390,7 @@ function App() {
                   {searchResults.length <= 0 && (
                     <div>Welcome to Custom Dance Search!!</div>
                   )}
-                  {expandedQuery && (
+                  {expandedQuery && queryExpansionOption !== "None" && (
                     <div style={{ fontSize: "24px" }}>
                       <span style={{ color: "red" }}>Expanded Query:</span>{" "}
                       {expandedQuery}

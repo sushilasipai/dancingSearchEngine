@@ -114,7 +114,9 @@ function App() {
 
   async function callQueryExpansion() {
     const url = "http://localhost:3000/query_expansion";
+    await querySolr(searchText, currentPage);
     let solr_results = originalData?.response?.docs;
+
     if (queryExpansionOption === "None") {
       if (clusteringOption === "None") {
         return await querySolr(searchText, currentPage);
